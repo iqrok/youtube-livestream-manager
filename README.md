@@ -25,8 +25,8 @@ Before you begin, ensure you have the following:
 
 1.  **Clone the Repository:**
     ```bash
-    git clone <your-repo-url>
-    cd google-auth-sample
+    git clone https://github.com/rusminto/youtube-livestream-manager.git
+    cd youtube-livestream-manager
     ```
 
 2.  **Install Dependencies:**
