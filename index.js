@@ -34,15 +34,49 @@ async function createAndSaveNewStream() {
         createdAt: new Date().toISOString()
     };
 
+    const streamKey = stream.cdn.ingestionInfo.streamName;
+    const rtmpUrl = stream.cdn.ingestionInfo.ingestionAddress;
+
     writeManagedStream(streamData);
     console.log(`New stream created. Shareable link: https://www.youtube.com/watch?v=${broadcast.id}`);
-    console.log(`Stream key (use in OBS): ${stream.cdn.ingestionInfo.streamName}`);
+    console.log(`Stream key (use in OBS): ${streamKey}`);
+    // --- Wait for YouTube to be ready ---
+    await google.pollBroadcastReady(broadcast.id);
+    // ------------------------------------
     
     // --- OBS Integration ---
-    console.log('Attempting to restart OBS stream...');
+    console.log('Attempting to start and verify OBS stream...');
     try {
         await obs.connect();
-        await obs.restartStream();
+        
+        let isLive = false;
+        const maxRetries = 3;
+        const retryDelay = 15000; // 15 seconds
+
+        for (let i = 0; i < maxRetries; i++) {
+            console.log(`[Attempt ${i + 1}/${maxRetries}] Starting OBS stream...`);
+            await obs.restartStream(streamKey, rtmpUrl);
+
+            console.log(`Waiting ${retryDelay / 1000} seconds to verify stream status...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+
+            isLive = await google.checkStreamStatus(broadcast.id, 'live');
+
+            if (isLive) {
+                console.log('Stream is live!');
+                break;
+            } else {
+                console.log(`Stream is not live after ${retryDelay / 1000} seconds.`);
+                if (i < maxRetries - 1) {
+                    console.log('Retrying...');
+                }
+            }
+        }
+
+        if (!isLive) {
+            console.error('Failed to make the stream live after multiple attempts. Please check OBS and YouTube Studio manually.');
+        }
+
     } catch (error) {
         console.error('Could not restart OBS stream. Please do it manually.', error.message);
     } finally {

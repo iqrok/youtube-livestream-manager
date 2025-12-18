@@ -26,7 +26,28 @@ class OBS {
         this.connected = false;
     }
 
-    async restartStream() {
+    async setStreamKey(streamKey, rtmpUrl) {
+        if (!this.connected) {
+            throw new Error('Not connected to OBS. Cannot set stream key.');
+        }
+
+        try {
+            console.log(`Setting OBS stream key to: ${streamKey}`);
+            await this.obs.call('SetStreamServiceSettings', {
+                streamServiceType: 'rtmp_custom',
+                streamServiceSettings: {
+                    server: rtmpUrl,
+                    key: streamKey,
+                },
+            });
+            console.log('OBS stream key set successfully.');
+        } catch (error) {
+            console.error('Error setting OBS stream key:', error.message);
+            // Don't re-throw here, as failing to control OBS shouldn't stop the whole YouTube script
+        }
+    }
+
+    async restartStream(streamKey, rtmpUrl) {
         if (!this.connected) {
             throw new Error('Not connected to OBS. Cannot restart stream.');
         }
@@ -34,17 +55,18 @@ class OBS {
         try {
             const { outputActive } = await this.obs.call('GetStreamStatus');
             if (outputActive) {
-                console.log('OBS stream is active. Restarting...');
+                console.log('OBS stream is active. Stopping it before updating settings...');
                 await this.obs.call('StopStream');
                 // Wait a moment for OBS to stop gracefully
-                await new Promise(resolve => setTimeout(resolve, 3000)); // 3 seconds
-                await this.obs.call('StartStream');
-                console.log('OBS stream restarted.');
-            } else {
-                console.log('OBS stream is not active. Starting it...');
-                await this.obs.call('StartStream');
-                console.log('OBS stream started.');
+                await new Promise(resolve => setTimeout(resolve, 5000)); // 5 seconds
             }
+            
+            await this.setStreamKey(streamKey, rtmpUrl);
+
+            console.log('Starting OBS stream...');
+            await this.obs.call('StartStream');
+            console.log('OBS stream started.');
+
         } catch (error) {
             console.error('Error controlling OBS stream:', error.message);
             // Don't re-throw here, as failing to control OBS shouldn't stop the whole YouTube script
