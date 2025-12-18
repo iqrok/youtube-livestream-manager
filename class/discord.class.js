@@ -28,11 +28,6 @@ class Discord {
                     name: 'Shareable Link',
                     value: `[Click Here to Watch](${videoUrl})`,
                     inline: true
-                },
-                {
-                    name: 'OBS Stream Key',
-                    value: `\`${streamKey}\``,
-                    inline: true
                 }
             ],
             timestamp: new Date().toISOString(),
