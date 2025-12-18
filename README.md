@@ -52,16 +52,17 @@ Before you begin, ensure you have the following:
     -   (Optional) Edit `config/settings.config.js` to customize the stream title, description, Discord message, etc.
 
 4.  **First-Time Authentication (to get `token.json`):**
-    -   This application uses OAuth 2.0. You must authorize it once to generate a `token.json` file that stores the authentication credentials.
+    -   This application uses OAuth 2.0. You must authorize it once to generate a `token.json` file that stores the refresh token.
     -   Run the script for the first time from your terminal:
         ```bash
         node index.js
         ```
-    -   The script will detect that no token exists and will print an authorization URL to the console.
+    -   The script will detect that it is not authenticated and will print an authorization URL to the console.
     -   Copy this URL, paste it into your browser, and complete the Google login and consent flow.
     -   After authorizing, your browser will be redirected to the `redirectUrl` you configured (e.g., `http://localhost:3000/auth/google`). The URL in your browser's address bar will contain a `code` parameter. It will look something like this: `?code=4/0A...&scope=...`
-    -   The script will now be waiting for input in your terminal. Copy the **entire code value** from the URL (make sure to get the full value, it can be long) and paste it into the terminal, then press Enter.
-    -   The script will use this code to fetch the token, save it as `token.json`, and then continue running. You only need to do this once.
+    -   The script will be waiting for input in your terminal, with the prompt: `After authenticating, you will be redirected. Copy the 'code' from the URL and provide it here: `.
+    -   Copy the **entire code value** from the URL (make sure to get the full value, it can be long) and paste it into the terminal, then press Enter.
+    -   The script will use this code to fetch the token, save it as `token.json`, and then continue with its normal operation. You only need to do this once.
 
 ## How to Use
 Once setup is complete, simply run the service from your terminal:
